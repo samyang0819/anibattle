@@ -1,0 +1,1260 @@
+/* =========================================================
+   AniBattle — AniHive Premium Theme (Final)
+   Drop-in stylesheet: same classNames, elevated design
+
+   Real talk:
+   - This file is a “design system in one file”.
+   - If you keep class names consistent, you can swap the whole vibe without touching React.
+   - If something looks off, usually it’s because a page is using a class that isn’t styled here (or vice versa).
+   ========================================================= */
+
+/* ---------- Reset / Base ---------- */
+
+/* Make layout math predictable (padding/border won't randomly change widths) */
+*{ box-sizing:border-box; }
+
+/* Helps full-height layouts + fixed backgrounds behave */
+html,body{ height:100%; }
+
+body{
+  margin:0;
+
+  /* Font stack: var(--font) lets you override later without editing this file */
+  font-family: var(--font, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Inter', Arial);
+
+  /* Everything pulls from tokens so the palette is consistent */
+  color: var(--text);
+  background: var(--bg);
+
+  /* If parallax/blur creates overflow, this prevents sideways scroll */
+  overflow-x:hidden;
+
+  /* Slightly nicer text rendering on most machines */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Links inherit theme colors so you don’t get default blue/purple */
+a{ color:inherit; text-decoration:none; }
+
+/* Images don’t break layouts by default */
+img{ max-width:100%; display:block; }
+
+/* Forms/buttons inherit font so the UI doesn't “switch fonts” randomly */
+button,input,select,textarea{ font:inherit; }
+
+/* ---------- 🎨 Design Tokens (AniHive Palette) ---------- */
+:root{
+  /* Brand accents:
+     - accent is your “mint glow” signature
+     - accent2 is the “energy blue” to make gradients feel alive */
+  --accent: #64ffda;
+  --accent2: #5a7cfa;
+
+  /* Glow tokens: used for box shadows and subtle highlights */
+  --accent-glow: rgba(100, 255, 218, 0.25);
+  --accent-soft: rgba(100, 255, 218, 0.08);
+
+  /* Deep cinematic background:
+     - bg is the true page background
+     - elev layers are used in cards/inner surfaces */
+  --bg: #0a1920;
+  --bg-elev: #112240;
+  --bg-elev2: #1a3a5c;
+
+  /* Glass surfaces:
+     - panel is translucent (good for chips / overlays)
+     - panel-solid is for main cards where readability matters */
+  --panel: rgba(17, 34, 64, 0.72);
+  --panel-solid: #112240;
+
+  /* Strokes:
+     - stroke is your “brand line”
+     - stroke-soft is subtle separators */
+  --stroke: rgba(100, 255, 218, 0.18);
+  --stroke-soft: rgba(255,255,255,0.08);
+
+  /* Text hierarchy:
+     - text = primary
+     - text-dim = supporting copy
+     - text-faint = placeholders / low-importance */
+  --text: #e6f1ff;
+  --text-dim: #8892b0;
+  --text-faint: #5a6a85;
+
+  /* Radius:
+     - r for standard surfaces
+     - r-pill for chips/pills
+     - r-lg for large containers */
+  --r: 18px;
+  --r-pill: 999px;
+  --r-lg: 28px;
+
+  /* Depth:
+     - shadows are tuned to look “premium” not heavy
+     - border is a token so everything has the same outline thickness */
+  --border: 1px solid var(--stroke);
+  --shadow: 0 8px 32px rgba(0,0,0,0.24);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.32);
+  
+  /* Glow:
+     - glow is default “soft tech”
+     - glow-hover is “reward” on hover */
+  --glow: 0 0 0 1px var(--stroke), 0 0 24px var(--accent-glow);
+  --glow-hover: 0 0 0 1px var(--accent), 0 0 32px var(--accent-glow);
+}
+
+/* ---------- Container / Layout ---------- */
+
+/* Main page wrapper: keeps everything centered and not too wide */
+.container{
+  width: min(1200px, 94vw);
+  margin: 0 auto;
+  padding: 28px 0 80px;
+}
+
+/* "hero" layout = your standard 2-column page layout */
+.hero{
+  display:grid;
+  grid-template-columns: 1.4fr .9fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* On smaller screens: stack cards vertically */
+@media (max-width: 980px){
+  .hero{ grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   🌌 BACKGROUND
+   ========================================================= */
+
+/* The rotating wallpaper behind everything */
+.bgWallpaper{
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+
+  /* Make any image fill the screen cleanly */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Color grading so wallpapers don’t fight your UI text */
+  filter: saturate(1.05) contrast(1.08) brightness(0.75);
+
+  /* Parallax uses CSS vars set by your mousemove hook */
+  transform: translate(var(--mx, 0px), var(--my, 0px)) scale(1.04);
+
+  /* Browser hint: “this thing is going to animate” */
+  will-change: transform;
+
+  /* Smooth out parallax updates */
+  transition: transform 0.3s ease;
+}
+
+/* Overlay layer: the secret sauce that makes any wallpaper look “on brand” */
+.bgOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+
+  /* Two soft glows + a dark gradient = instant cinematic UI */
+  background:
+    radial-gradient(1000px 700px at 25% 30%, rgba(100,255,218,0.08), transparent 65%),
+    radial-gradient(900px 650px at 75% 50%, rgba(90,124,250,0.08), transparent 65%),
+    linear-gradient(180deg, rgba(10,25,32,0.92), rgba(10,25,32,0.88));
+}
+
+/* Noise layer: prevents gradients from looking “flat” / banding */
+.bgOverlay::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0.06;
+
+  /* Inline SVG noise texture (tiny + fast + no extra asset needed) */
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+/* Anime “speed lines” texture: keep it subtle or it becomes distracting */
+.speedLines{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events:none;
+  opacity: 0.03;
+
+  /* Repeating diagonal lines */
+  background: repeating-linear-gradient(
+    118deg,
+    rgba(100,255,218,0.25) 0px,
+    rgba(100,255,218,0.25) 1px,
+    transparent 24px,
+    transparent 52px
+  );
+
+  /* Screen blend makes lines feel like light, not paint */
+  mix-blend-mode: screen;
+
+  /* Fade lines out toward edges so your content stays readable */
+  mask-image: radial-gradient(circle at 50% 40%, rgba(0,0,0,1), transparent 75%);
+}
+
+/* Drift animation: tiny movement so the background feels alive */
+@keyframes drift {
+  0%   { transform: translate(var(--mx,0px), var(--my,0px)) scale(1.04); }
+  50%  { transform: translate(calc(var(--mx,0px) - 8px), calc(var(--my,0px) - 6px)) scale(1.04); }
+  100% { transform: translate(var(--mx,0px), var(--my,0px)) scale(1.04); }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: no-preference){
+  .bgWallpaper{ animation: drift 22s ease-in-out infinite; }
+}
+
+/* =========================================================
+   🧭 NAV
+   ========================================================= */
+
+/* Sticky nav: keeps core actions always accessible */
+.nav{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  /* Slight transparency so background can breathe */
+  background: rgba(10,25,32,0.78);
+
+  /* Blur makes it look like glass */
+  backdrop-filter: blur(18px);
+
+  /* Soft separator line */
+  border-bottom: 1px solid var(--stroke-soft);
+}
+
+/* Align nav content to same width as .container */
+.navInner{
+  width: min(1200px, 94vw);
+  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 16px;
+  padding: 14px 0;
+}
+
+/* Left side brand block */
+.brand{ display:flex; align-items:center; gap: 14px; }
+
+/* Logo badge: gradient + glow = instant “app identity” */
+.badge{
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: var(--glow);
+  display:grid;
+  place-items:center;
+  font-weight:980;
+  color: #0a1920;
+}
+
+/* Brand title uses gradient text for that premium look */
+.brandName{ 
+  font-weight: 950; 
+  letter-spacing: -0.4px; 
+  font-size: 19px; 
+  color: var(--text);
+
+  /* This makes the text gradient show up */
+  background: linear-gradient(90deg, var(--text), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Small subtitle under the name */
+.brandTag{ 
+  font-size: 12px; 
+  color: var(--text-dim); 
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+/* Right side nav links container */
+.navLinks{
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items:center;
+}
+
+/* Pill buttons: used everywhere for consistency */
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  border: var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+/* Hover/active makes navigation feel “alive” */
+.pill:hover, .pill.active{
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: var(--glow-hover);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   🃏 CARDS
+   ========================================================= */
+
+/* Default surface container.
+   Warning: if every section is a card, the UI feels like a dashboard.
+   You already started moving the “game screens” into arenaPanel instead. */
+.card{
+  border-radius: var(--r-lg);
+  border: var(--border);
+  background: var(--panel-solid);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Soft “reward” on hover */
+.card:hover{
+  border-color: var(--accent);
+  box-shadow: var(--glow-hover);
+}
+
+/* Accent line on top = “premium UI” trick */
+.card::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; right:0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.7;
+}
+
+/* Keep content above ::before overlay */
+.cardHeader, .cardBody{ position: relative; z-index: 1; }
+
+/* Spacing: header slightly tighter than body */
+.cardHeader{ padding: 24px 24px 14px; }
+.cardBody{ padding: 20px 24px 24px; }
+
+/* Global page headlines */
+.h1{
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.02;
+  margin: 8px 0 12px;
+  font-weight: 980;
+  letter-spacing: -1.2px;
+  color: var(--text);
+
+  /* Text shadow helps readability on bright wallpapers */
+  text-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Default paragraph/secondary text style */
+.sub{
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.65;
+  max-width: 52ch; /* keeps lines readable */
+}
+
+/* Simple divider line used between sections */
+.divider{
+  height: 1px;
+  background: var(--stroke-soft);
+  margin: 18px 0;
+}
+
+/* =========================================================
+   ⌨️ INPUTS
+   ========================================================= */
+
+/* Field wrapper: keeps label + input spacing consistent */
+.field{ display:grid; gap: 8px; }
+
+/* Labels: uppercase + letter spacing makes it feel “UI” not “blog” */
+.label{ 
+  font-size: 12px; 
+  color: var(--text-dim); 
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* Inputs are slightly translucent so background vibe comes through */
+.input, .select{
+  padding: 14px 16px;
+  border-radius: var(--r);
+  border: 1px solid var(--stroke-soft);
+  background: rgba(10,25,32,0.65);
+  color: var(--text);
+  outline:none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Placeholder should look obviously “placeholder”, not actual text */
+.input::placeholder{ color: var(--text-faint); }
+
+/* Focus ring: visible without being obnoxious */
+.input:focus, .select:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(100,255,218,0.12);
+}
+
+/* 2-column input layout used on lobby/setup screens */
+.grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px){ .grid2{ grid-template-columns:1fr; } }
+
+/* =========================================================
+   🔘 BUTTONS
+   ========================================================= */
+
+/* Primary button: gradient = “main action” */
+.btn{
+  width: 100%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+  padding: 15px 20px;
+  border-radius: var(--r-pill);
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0a1920;
+  font-weight: 850;
+  font-size: 15px;
+  box-shadow: var(--glow);
+  cursor:pointer;
+  transition: all 0.15s ease;
+}
+
+/* Lift + brighter glow = feels clickable */
+.btn:hover{ 
+  transform: translateY(-2px); 
+  box-shadow: var(--glow-hover);
+  filter: brightness(1.05);
+}
+
+/* Remove lift on press so it feels like a real button */
+.btn:active{ transform: translateY(0); }
+
+/* Disabled state: clearly disabled, not “broken” */
+.btn:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary button: outline style */
+.btnGhost{
+  width: 100%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+  padding: 15px 20px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  border: var(--border);
+  color: var(--text);
+  font-weight: 700;
+  cursor:pointer;
+  transition: all 0.15s ease;
+}
+
+/* Hover: same “reward language” as pills/cards */
+.btnGhost:hover{
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+  box-shadow: var(--glow-hover);
+}
+
+/* =========================================================
+   🏷️ CHIPS / KPI
+   ========================================================= */
+
+/* KPI row wraps so it doesn’t explode on small screens */
+.kpiRow{ display:flex; gap: 10px; flex-wrap:wrap; margin-top: 18px; }
+
+/* KPI pill: small stat badges (score, status, etc.) */
+.kpi{
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  display:inline-flex;
+  align-items:center;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+/* Tiny interaction so KPIs don’t feel dead */
+.kpi:hover{ border-color: var(--accent); }
+
+/* notices:
+   - notice = general info box
+   - qCard/choice reuse same surface style for consistency */
+.notice, .qCard, .choice{
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* Default notice padding/size */
+.notice{ padding: 12px 14px; font-size: 14px; }
+
+/* Error state: red-tinted but still readable */
+.noticeBad{
+  background: rgba(220, 60, 80, 0.12);
+  border-color: rgba(220, 60, 80, 0.35);
+}
+
+/* Success state: mint-tinted */
+.noticeGood{
+  background: rgba(100, 255, 218, 0.10);
+  border-color: rgba(100, 255, 218, 0.35);
+}
+
+/* quiz cards:
+   Used mainly in “results/review” style lists */
+.qCard{ padding: 18px; margin-bottom: 14px; }
+
+/* Question title inside qCard */
+.qTitle{ font-weight: 850; margin-bottom: 12px; font-size: 16px; }
+
+/* Choice rows (used in older quiz UI, still supported) */
+.choice{
+  display:flex;
+  gap: 12px;
+  align-items:flex-start;
+  padding: 14px;
+  cursor:pointer;
+  margin-bottom: 10px;
+  transition: all 0.15s ease;
+  border-radius: var(--r);
+}
+
+/* Slide effect = “selection feels responsive” */
+.choice:hover{
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateX(2px);
+}
+
+/* Checked state: stronger glow to make selection obvious */
+.choice:has(input:checked){
+  border-color: var(--accent);
+  background: rgba(100,255,218,0.12);
+  box-shadow: var(--glow-hover);
+}
+
+/* Radio/checkbox accent color */
+.choice input{ margin-top:3px; accent-color: var(--accent); }
+
+/* =========================================================
+   📊 TABLE (Leaderboard)
+   ========================================================= */
+
+/* Table is a “single card” so leaderboard feels clean */
+.table{
+  width:100%;
+  border-collapse: collapse;
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Cells: readable spacing, consistent typography */
+.table th, .table td{
+  text-align:left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--stroke-soft);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* Header row: smaller, uppercase = “UI table” look */
+.table thead th{
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+  background: rgba(10,25,32,0.45);
+  border-bottom: var(--border);
+}
+
+/* Subtle hover so it feels interactive */
+.table tbody tr{ transition: background 0.12s ease; }
+.table tbody tr:hover{ background: var(--accent-soft); }
+.table tbody tr:last-child td{ border-bottom: none; }
+
+/* =========================================================
+   📌 Sticky submit bar
+   ========================================================= */
+
+/* Sticky bar: meant for “submit / continue” actions that should stay visible */
+.stickyBar{
+  position: sticky;
+  bottom: 16px;
+  margin-top: 20px;
+  border-radius: var(--r-lg);
+  border: var(--border);
+  background: var(--panel-solid);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  padding: 14px 18px;
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   👤 PROFILE
+   ========================================================= */
+
+/* Top section with avatar + name/stats */
+.profileTop{
+  display:flex;
+  gap: 18px;
+  align-items:center;
+  padding-bottom: 10px;
+}
+
+/* Avatar outer glow wrapper */
+.avatar{
+  width: 82px;
+  height: 82px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: var(--glow);
+  display:grid;
+  place-items:center;
+  flex-shrink:0; /* prevents avatar from squishing */
+}
+
+/* Inner avatar where initials sit */
+.avatarInner{
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: var(--bg-elev);
+  border: var(--border);
+  display:grid;
+  place-items:center;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  font-size: 24px;
+}
+
+/* Chip row for quick profile stats */
+.chipRow{ display:flex; gap: 8px; flex-wrap: wrap; }
+
+/* Smaller chips for profile (accuracy, W/L, winrate) */
+.miniChip{
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
+  border: var(--border);
+  background: var(--panel);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  display:inline-flex;
+  align-items:center;
+  gap: 5px;
+}
+
+/* Stat grid: 2 columns on desktop, 1 on mobile */
+.statGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px){ .statGrid{ grid-template-columns: 1fr; } }
+
+/* Stat tile = mini cards inside profile */
+.statTile{
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  transition: border-color 0.15s ease;
+}
+
+/* Hover makes tiles feel clickable even if they aren’t (nice polish) */
+.statTile:hover{ border-color: var(--accent); }
+
+/* Tile label: same uppercase UI style as .label */
+.statLabel{
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+/* Tile value: big and “game-like” */
+.statValue{
+  font-size: 28px;
+  font-weight: 950;
+  margin-top: 6px;
+  color: var(--text);
+}
+
+/* Tile hint: keeps explanation light */
+.statHint{
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+/* Progress bar sections */
+.barBlock{ display:grid; gap: 12px; }
+
+/* Title + % aligned left/right */
+.barRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap: 12px;
+}
+
+/* Strong title text */
+.barTitle{ font-weight: 850; color: var(--text); }
+
+/* Percent highlighted with accent */
+.barPct{ font-weight: 850; color: var(--accent); }
+
+/* Background track for bars */
+.bar{
+  height: 10px;
+  border-radius: 999px;
+  background: var(--stroke-soft);
+  overflow:hidden;
+  margin-top: 4px;
+}
+
+/* Bar fill uses gradient so it feels “rewarding” */
+.barFill{
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  box-shadow: 0 4px 16px var(--accent-glow);
+
+  /* Smooth updates when numbers change */
+  transition: width 0.4s ease;
+}
+
+/* Small cards used in “Next Steps” / helper panels */
+.miniCard{
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  padding: 14px;
+}
+
+/* =========================================================
+   ✨ GALLERY & MODAL (NEW)
+   ========================================================= */
+
+/* Gallery card button: clickable surface with image preview */
+.animeCard{
+  width: 100%;
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Lift + glow makes it feel like a “collectible card” */
+.animeCard:hover{
+  border-color: var(--accent);
+  box-shadow: var(--glow-hover);
+  transform: translateY(-3px);
+}
+
+/* Preview image strip at top */
+.animeCardImg{
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Dark fade so text area below feels connected to the image */
+.animeCardImg::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, transparent 40%, rgba(10,25,32,0.92));
+}
+
+/* Bottom content area */
+.animeCardBody{
+  padding: 14px;
+}
+
+/* Modal backdrop: full-screen dim + blur so focus stays on the image */
+.modalBackdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10,25,32,0.85);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+/* Modal container */
+.modalCard{
+  width: min(720px, 96vw);
+  border-radius: var(--r-lg);
+  border: var(--border);
+  background: var(--panel-solid);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Big wallpaper preview */
+.modalImg{
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+}
+
+/* =========================================================
+   🏆 LEADERBOARD TIERS (NEW)
+   ========================================================= */
+
+/* Top-3 layout: 3 columns on desktop, stacked on mobile */
+.grid3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px){ .grid3{ grid-template-columns: 1fr; } }
+
+/* Big stat box used for top ranks */
+.kpiBig{
+  padding: 16px;
+  border-radius: var(--r);
+  border: var(--border);
+  background: var(--panel);
+  text-align: center;
+}
+
+/* Big text (usually username or title) */
+.num{
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+/* Supporting label text */
+.lbl{
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Tier badge */
+.rankPill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+  border: var(--border);
+}
+
+/* Tier colors:
+   - S = gold flex
+   - A = mint
+   - B = blue
+   - C = neutral */
+.tierS{ background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.35); color: #ffd700; }
+.tierA{ background: rgba(100,255,218,0.12); border-color: rgba(100,255,218,0.35); color: var(--accent); }
+.tierB{ background: rgba(90,124,250,0.12); border-color: rgba(90,124,250,0.35); color: var(--accent2); }
+.tierC{ background: var(--panel); border-color: var(--stroke); color: var(--text-dim); }
+
+/* =========================================================
+   🔐 AUTH PAGES (NEW)
+   ========================================================= */
+
+/* Center auth screens so they feel like “login portal”, not random page */
+.authWrap{
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+  padding: 20px;
+}
+
+/* Keep auth width comfortable */
+.authCard{
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Simple form spacing */
+.authForm{
+  display: grid;
+  gap: 14px;
+}
+
+/* =========================================================
+   ✨ UTILITIES & MICRO-INTERACTIONS
+   ========================================================= */
+
+/* Optional: give certain cards extra lift on hover */
+.card.interactive:hover{ transform: translateY(-3px); }
+
+/* Quick helpers for inline text styling */
+.text-accent{ color: var(--accent); }
+.text-gradient{
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Global glow layer: subtle highlight near the top of the page */
+.glow{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(600px 400px at 50% 10%, rgba(100,255,218,0.06), transparent 70%);
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+/* Floating action button:
+   - hidden on desktop
+   - shows on mobile as a quick “action” hook */
+.fab{
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: var(--border);
+  background: var(--panel-solid);
+  color: var(--accent);
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--glow);
+  cursor: pointer;
+  z-index: 30;
+  transition: all 0.15s ease;
+
+  /* Desktop default: hidden */
+  display: none;
+}
+
+/* Tap feedback */
+.fab:hover{ transform: scale(1.08); box-shadow: var(--glow-hover); }
+
+/* Mobile: enable */
+@media (max-width: 768px){ .fab{ display: grid; } }
+
+/* Active pill state (duplicated here for safety / overrides) */
+.pill.active{
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: var(--glow-hover);
+}
+
+/* Optional page transition classes (if you wire them up in React) */
+.page-enter{ opacity: 0; transform: translateY(8px); }
+.page-enter-active{
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Keyboard focus: keep it visible for accessibility */
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Smooth scroll feels nice for long pages */
+html{ scroll-behavior: smooth; }
+
+/* Text selection color: small polish but makes it feel “designed” */
+::selection{ background: rgba(100,255,218,0.25); color: var(--text); }
+
+/* Motion safety: kill animations if user requests it */
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+}
+
+/* =========================================================
+   ⚔️ ARENA UI (Problem 3 fix) — less cards, more "game"
+   Drop this at the BOTTOM of index.css
+
+   Intent:
+   - Replace “everything is a card” with a single big “arena” surface.
+   - Make Solo/Battle feel like a game screen, not a dashboard.
+   ========================================================= */
+
+/* Arena wrapper: same width language as container but tailored for game screens */
+.arenaShell{
+  width: min(1200px, 94vw);
+  margin: 0 auto;
+  padding: 26px 0 80px;
+
+  /* One main column, keep it clean */
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* Top row: title on left, HUD chips on right */
+.arenaTop{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap: 12px;
+  flex-wrap: wrap; /* so it doesn’t break on small screens */
+}
+
+/* Arena title is intentionally big (this is the “game screen”) */
+.arenaTitle{
+  font-weight: 980;
+  letter-spacing: -0.6px;
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 1.05;
+  margin: 0;
+}
+
+/* Subtext under the arena title */
+.arenaSub{
+  color: var(--text-dim);
+  margin-top: 6px;
+  max-width: 62ch;
+}
+
+/* HUD = those small chips showing mode/status/score */
+.hud{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+/* HUD chips: glassy, compact, readable */
+.hudChip{
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--stroke-soft);
+  background: rgba(17, 34, 64, 0.55);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* Make the important parts pop */
+.hudChip b{
+  font-weight: 980;
+  color: var(--text);
+}
+
+/* Tiny glowing dot is a simple “alive UI” touch */
+.hudDot{
+  width: 9px; height: 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 18px rgba(100,255,218,0.35);
+}
+
+/* Main arena container: the “stage” */
+.arenaPanel{
+  border-radius: var(--r-lg);
+  border: 1px solid var(--stroke-soft);
+  background: rgba(17, 34, 64, 0.62);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-lg);
+  overflow:hidden;
+  position:relative;
+}
+
+/* Soft background glow inside the arena so it feels layered */
+.arenaPanel::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    radial-gradient(700px 500px at 20% 15%, rgba(100,255,218,0.12), transparent 60%),
+    radial-gradient(700px 500px at 80% 30%, rgba(90,124,250,0.12), transparent 62%);
+  pointer-events:none;
+}
+
+/* Inner padding for question + choices */
+.arenaInner{
+  position:relative;
+  padding: 22px;
+  display:grid;
+  gap: 14px;
+}
+
+/* Big question text */
+.qBig{
+  font-weight: 980;
+  letter-spacing: -0.3px;
+  font-size: clamp(18px, 2.2vw, 26px);
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Meta row: question number, category, etc. */
+.qMeta{
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 13px;
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 2-column choice grid (desktop) */
+.attackGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Mobile: stack choices */
+@media (max-width: 720px){
+  .attackGrid{ grid-template-columns: 1fr; }
+}
+
+/* Choice button:
+   - looks like a “move” not a form radio */
+.attackBtn{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--stroke-soft);
+  background: rgba(10,25,32,0.55);
+  cursor:pointer;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+  user-select:none; /* prevents annoying text selection while clicking fast */
+}
+
+/* Hover lift: tiny so it feels premium, not floaty */
+.attackBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(100,255,218,0.35);
+  box-shadow: var(--glow);
+}
+
+/* Selected state: obvious, confident, “locked in” */
+.attackBtn.selected{
+  border-color: var(--accent);
+  background: rgba(100,255,218,0.08);
+  box-shadow: var(--glow-hover);
+}
+
+/* A/B/C/D key badge */
+.attackKey{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display:grid;
+  place-items:center;
+  font-weight: 980;
+  color: #0a1920;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+/* Choice text */
+.attackText{
+  font-weight: 900;
+  color: var(--text);
+}
+
+/* Bottom area for navigation + submit buttons */
+.arenaFooter{
+  display:flex;
+  justify-content:space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 22px 20px;
+  border-top: 1px solid var(--stroke-soft);
+  background: rgba(10,25,32,0.35);
+  backdrop-filter: blur(14px);
+}
+
+/* Left side: small hint text */
+.arenaFooterLeft{
+  display:flex;
+  flex-direction:column;
+  gap: 4px;
+}
+
+/* Remove default margins from .sub inside footer */
+.arenaFooterLeft .sub{
+  margin:0;
+}
+
+/* Right side: button cluster */
+.arenaBtns{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:center;
+}
+
+/* Make arena buttons feel like “controls”, not full-width form buttons */
+.arenaBtns .btn,
+.arenaBtns .btnGhost{
+  width: auto;
+  min-width: 140px;
+}
+
+/* Keep full-width ONLY where it makes sense (auth pages, big CTAs) */
+.authForm .btn{
+  width: 100%;
+}
