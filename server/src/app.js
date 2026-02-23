@@ -13,7 +13,12 @@ const userRoutes = require("./routes/users");
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN, credentials: false }));
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(morgan("dev"));
 
